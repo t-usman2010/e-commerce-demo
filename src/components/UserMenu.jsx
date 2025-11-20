@@ -6,7 +6,9 @@ import {
   CogIcon,
   HeartIcon,
   ShoppingBagIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  XMarkIcon,
+  Bars3Icon
 } from '@heroicons/react/24/outline';
 import { useApp } from '../context/AppContext';
 import LoginModal from './LoginModal';
@@ -62,88 +64,143 @@ const UserMenu = () => {
     return state.user?.email || '';
   };
 
+  // Close menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isOpen && !event.target.closest('.user-menu-container')) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
   return (
     <>
-      <div className="relative">
+      <div className="relative user-menu-container">
         {state.user ? (
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label="User menu"
+            aria-expanded={isOpen}
           >
+            {/* Mobile: Show only avatar on very small screens */}
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-medium">
                 {getUserInitials()}
               </span>
             </div>
-            <ChevronDownIcon className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            
+            {/* Show name on medium screens and up */}
+            <span className="hidden md:block text-sm font-medium text-gray-700">
+              {getUserName()}
+            </span>
+            
+            <ChevronDownIcon 
+              className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''} text-gray-600`} 
+            />
           </button>
         ) : (
           <button
             onClick={() => setShowLogin(true)}
             className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label="Sign in"
           >
             <UserIcon className="h-6 w-6" />
             <span className="hidden sm:block text-sm font-medium">Sign In</span>
           </button>
         )}
 
-        {/* Dropdown Menu */}
+        {/* Dropdown Menu - Responsive */}
         {isOpen && state.user && (
-          <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-            <div className="px-4 py-3 border-b border-gray-100">
-              <div className="font-medium text-gray-900">{getUserName()}</div>
-              <div className="text-sm text-gray-500">{getUserEmail()}</div>
-            </div>
+          <>
+            {/* Mobile Overlay */}
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+              onClick={() => setIsOpen(false)}
+            />
+            
+            {/* Menu Container */}
+            <div className="
+              absolute right-0 top-full mt-2 
+              w-80 max-w-[90vw] 
+              bg-white rounded-lg shadow-xl border border-gray-200 
+              z-50
+              md:w-64
+              animate-in slide-in-from-top-2 duration-200
+            ">
+              {/* Mobile Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 md:hidden">
+                <h3 className="font-semibold text-gray-900">Account Menu</h3>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 rounded-lg hover:bg-gray-100"
+                  aria-label="Close menu"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
 
-            <div className="py-2">
-              <Link
-                to="/profile"
-                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                onClick={() => setIsOpen(false)}
-              >
-                <UserIcon className="h-4 w-4 mr-3" />
-                My Profile
-              </Link>
-              <Link
-                to="/orders"
-                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                onClick={() => setIsOpen(false)}
-              >
-                <ShoppingBagIcon className="h-4 w-4 mr-3" />
-                My Orders
-              </Link>
-              <Link
-                to="/wishlist"
-                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                onClick={() => setIsOpen(false)}
-              >
-                <HeartIcon className="h-4 w-4 mr-3" />
-                My Wishlist
-              </Link>
-              <Link
-                to="/settings"
-                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                onClick={() => setIsOpen(false)}
-              >
-                <CogIcon className="h-4 w-4 mr-3" />
-                Settings
-              </Link>
-            </div>
+              {/* User Info */}
+              <div className="px-4 py-3 border-b border-gray-100">
+                <div className="font-medium text-gray-900 truncate">{getUserName()}</div>
+                <div className="text-sm text-gray-500 truncate">{getUserEmail()}</div>
+              </div>
 
-            <div className="border-t border-gray-100 pt-2">
-              <button
-                onClick={handleLogout}
-                className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-              >
-                <ArrowRightOnRectangleIcon className="h-4 w-4 mr-3" />
-                Sign Out
-              </button>
+              {/* Menu Items */}
+              <div className="py-2 max-h-96 overflow-y-auto">
+                <Link
+                  to="/profile"
+                  className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <UserIcon className="h-5 w-5 mr-3 flex-shrink-0" />
+                  <span className="text-sm">My Profile</span>
+                </Link>
+                <Link
+                  to="/orders"
+                  className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <ShoppingBagIcon className="h-5 w-5 mr-3 flex-shrink-0" />
+                  <span className="text-sm">My Orders</span>
+                </Link>
+                <Link
+                  to="/wishlist"
+                  className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <HeartIcon className="h-5 w-5 mr-3 flex-shrink-0" />
+                  <span className="text-sm">My Wishlist</span>
+                </Link>
+                <Link
+                  to="/settings"
+                  className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <CogIcon className="h-5 w-5 mr-3 flex-shrink-0" />
+                  <span className="text-sm">Settings</span>
+                </Link>
+              </div>
+
+              {/* Logout Section */}
+              <div className="border-t border-gray-100 pt-2">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full px-4 py-3 text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <ArrowRightOnRectangleIcon className="h-5 w-5 mr-3 flex-shrink-0" />
+                  <span className="text-sm">Sign Out</span>
+                </button>
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
 
-      {/* Auth Modals */}
+      {/* Auth Modals - Ensure they're mobile responsive too */}
       <LoginModal
         isOpen={showLogin}
         onClose={() => setShowLogin(false)}
